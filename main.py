@@ -1,29 +1,30 @@
-# optimized.py
-import requests
+import aiohttp
+import asyncio
 from collections import Counter
 
-def get_text(url):
-    response = requests.get(url)
-    return response.text
+async def get_text(url):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            return await response.text()
 
 
 @profile
-def main():
+async def main():
     words_file = "words.txt"
     url = "https://eng.mipt.ru/why-mipt/"
 
-    # Загрузка текста и подсчёт частот один раз
-    text = get_text(url)
+    # Асинхронная загрузка текста
+    text = await get_text(url)
     word_frequencies = Counter(text.split())
 
     # Чтение уникальных слов из файла
     with open(words_file, 'r') as file:
         words_to_count = {line.strip() for line in file if line.strip()}
 
-    # Сбор результатов из предвычисленного словаря
+    # Сбор результатов
     frequencies = {word: word_frequencies.get(word, 0) for word in words_to_count}
     
     print(frequencies)
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
